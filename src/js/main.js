@@ -23,5 +23,5 @@ var tree = {
 };
 
 $(function(){
-	regenerate(true);
+	Tree.draw();
 });
