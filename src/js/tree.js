@@ -14,10 +14,21 @@ var Tree = {
 	init : true // true: create new tree, false: update
     },
     // Tree creation functions
-    generate : function(opts, branches, b) {
-	b = b == undefined ? opts.seed : b;
+    generate : function(opts, tree, b) {
+	b = (b == undefined) ? opts.seed : b;
 	var end = Tree.endPt(b), daR, newB;
-	branches.push(b);
+	tree.branches.push(b);
+
+        if(b.d > 4) {
+            var leaf = {
+                x : end.x,
+                y : end.y,
+                rx : 5,
+                ry : 3,
+                rotation : 45
+            };
+            tree.leaves.push(leaf);
+        }
 
 	if (b.d === opts.maxDepth)
 	    return;
@@ -25,7 +36,7 @@ var Tree = {
 	// Left branch
 	daR = opts.ar * Math.random() - opts.ar * 0.5;
 	newB = {
-	    i: branches.length,
+	    i: tree.branches.length,
 	    x: end.x,
 	    y: end.y,
 	    a: b.a - opts.da + daR,
@@ -33,12 +44,12 @@ var Tree = {
 	    d: b.d + 1,
 	    parent: b.i
 	};
-	Tree.generate(opts, branches, newB);
+	Tree.generate(opts, tree, newB);
 
 	// Right branch
 	daR = opts.ar * Math.random() - opts.ar * 0.5;
 	newB = {
-	    i: branches.length,
+	    i: tree.branches.length,
 	    x: end.x,
 	    y: end.y,
 	    a: b.a + opts.da + daR,
@@ -46,13 +57,13 @@ var Tree = {
 	    d: b.d + 1,
 	    parent: b.i
 	};
-	Tree.generate(opts, branches, newB);
-	return branches;
+	Tree.generate(opts, tree, newB);
+	return tree;
     },
     draw : function(options) {
 	options = $.extend(Tree.defaultOptions, options);
-	branches = Tree.generate(options, []);
-	options.init ? Tree.create(options, branches) : Tree.update(options, branches);
+	tree = Tree.generate(options, {branches : [], leaves : []});
+	options.init ? Tree.create(options, tree) : Tree.update(options, tree);
     },
     endPt : function(b) {
 	// Return endpoint of branch
@@ -65,28 +76,58 @@ var Tree = {
     y1 : function(d) { return d.y; },
     x2 : function(d) { return Tree.endPt(d).x; },
     y2 : function(d) { return Tree.endPt(d).y; },
-    create : function(opts, branches) {
+    rx : function(d) { return d.rx; },
+    ry : function(d) { return d.ry; },
+    strokeWidth : function(opts) {
+        var f = function(d) {
+            return parseInt(opts.maxDepth + 1 - d.d) + 'px';
+        };
+        return f;
+    },
+    id : function(d) { return 'id-' + d.i; },
+    rotation : function(d) {
+        return  'rotate(' + d.rotation + ' ' + d.x + ' ' + d.y + ' )';
+    },
+    create : function(opts, tree) {
 	d3.select('svg')
 	    .selectAll('line')
-	    .data(branches)
+	    .data(tree.branches)
 	    .enter()
 	    .append('line')
 	    .attr('x1', Tree.x1)
 	    .attr('y1', Tree.y1)
 	    .attr('x2', Tree.x2)
 	    .attr('y2', Tree.y2)
-	    .style('stroke-width', function(d) {return parseInt(opts.maxDepth + 1 - d.d) + 'px';})
+	    .style('stroke-width', Tree.strokeWidth(opts))
 	    .style('stroke', '#53350A')
-	    .attr('id', function(d) {return 'id-' + d.i;});
+	    .attr('id', Tree.id);
+        d3.select('svg')
+            .selectAll('ellipse')
+            .data(tree.leaves)
+            .enter()
+            .append('ellipse')
+            .attr('cx', Tree.x1).attr('cy', Tree.y1)
+            .attr('rx', Tree.rx).attr('ry', Tree.ry)
+            .attr('transform', Tree.rotation)
+            .style('stroke', 'rgba(52, 58, 21, 0.1)')
+            .attr('fill', 'rgba(206, 228, 97, 0.5)');
     },
     update : function(opts, branches) {
 	d3.select('svg')
 	    .selectAll('line')
-	    .data(branches)
+	    .data(tree.branches)
 	    .transition()
 	    .attr('x1', Tree.x1)
 	    .attr('y1', Tree.y1)
 	    .attr('x2', Tree.x2)
 	    .attr('y2', Tree.y2);
+        d3.select('svg')
+            .selectAll('ellipse')
+            .data(tree.leaves)
+            .transition()
+            .attr('cx', Tree.x1).attr('cy', Tree.y1)
+            .attr('rx', Tree.rx).attr('ry', Tree.ry)
+            .attr('transform', Tree.rotation)
+            .attr('fill', 'rgba(206, 228, 97, 0.5)');
     }
 };
