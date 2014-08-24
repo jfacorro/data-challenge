@@ -5,7 +5,7 @@
 var Tree = {
     defaultOptions : {
 	seed : {
-            i: 0, x: 210, y: 300, a: 0, l: 70, d:0
+            i: 0, x: 250, y: 400, a: 0, l: 70, d:0
         }, // a = angle, l = length, d = depth
 	da : 0.5, // Angle delta
 	dl : 0.8, // Length delta (factor)
