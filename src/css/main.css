@@ -1,3 +1,7 @@
+body {
+    font-family: Verdana;
+}
+
 /* SVG styling */
 svg {
 	width: 420px;
